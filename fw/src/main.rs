@@ -59,7 +59,10 @@ async fn main() {
                     }
 
                     info!("Change detected: {:?} -> {:?}", &path, &transition);
-                    execute_commands(&action.commands).await;
+                    let cmds = action.commands.clone();
+                    tokio::spawn(async move {
+                        execute_commands(&cmds).await;
+                    });
                 }
             }
         }
