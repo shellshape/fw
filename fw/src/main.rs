@@ -34,11 +34,11 @@ async fn main() {
 
     info!("Watching targets ...");
     loop {
-        'watch_loop: for (index, transition) in watcher
+        for (index, transition) in watcher
             .watch()
             .into_iter()
-            .filter(|transition| !matches!(transition, Transition::None))
             .enumerate()
+            .filter(|(_, transition)| !matches!(transition, Transition::None))
         {
             let Some(path) = watcher.get_path(index) else {
                 error!("could not get path for index {index}");
@@ -50,17 +50,21 @@ async fn main() {
                     if target.path() != path.to_string_lossy()
                         || !target.matches_transition(transition)
                     {
-                        debug!("Change not tracked: {:?} -> {:?}", &path, &transition);
-                        continue 'watch_loop;
+                        debug!(
+                            "Change not tracked: {:?} -> {:?}",
+                            target.path(),
+                            &transition
+                        );
+                        continue;
                     }
 
                     info!("Change detected: {:?} -> {:?}", &path, &transition);
                     execute_commands(&action.commands).await;
                 }
             }
-
-            time::sleep(sleep_interval).await;
         }
+
+        time::sleep(sleep_interval).await;
     }
 }
 
