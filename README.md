@@ -7,6 +7,10 @@ Currently, there are no pre-compiled binaries, but you can install the tool usin
 cargo install --git https://github.com/zekrotja/fw fw
 ```
 
+## Why?
+
+This tool is mostly purpose built to simplify and speed up some task during my development at work by restarting services when re-building modules. But still the target of the project is to make it as general purpose as possible, so that other automation tasks can be realized using this tool. Feel free to contribute ideas and bugs via [the issues](https://github.com/zekroTJA/fw/issues) or by creating [a pull request](https://github.com/zekroTJA/fw/compare).
+
 ## Configuration
 
 Configuration can be provided as `TOML`, `YML` or `JSON` file either in the current working directory as `fw.*` or in the users home config directory, which maps to the following directories depending on the OS.
