@@ -1,3 +1,4 @@
+use crate::util::split_cmd_trimmed;
 use anyhow::Result;
 use directories::ProjectDirs;
 use figment::{
@@ -6,7 +7,6 @@ use figment::{
 };
 use fwatch::Transition;
 use serde::Deserialize;
-use crate::util::split_cmd_trimmed;
 
 #[derive(Debug, Deserialize)]
 pub struct Config {
@@ -24,10 +24,20 @@ pub struct Action {
 #[serde(untagged)]
 pub enum Target {
     Path(String),
-    PathDetails {
-        path: String,
-        transitions: Vec<String>,
-    },
+    PathDetails(PathDetails),
+}
+
+#[derive(Debug, Deserialize, Clone)]
+#[serde(untagged)]
+pub enum Command {
+    Command(String),
+    CommandDetails(CommandDetails),
+}
+
+#[derive(Debug, Deserialize, Clone)]
+pub struct PathDetails {
+    pub path: String,
+    pub transitions: Vec<String>,
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -36,13 +46,6 @@ pub struct CommandDetails {
     pub cwd: Option<String>,
     #[serde(rename = "async")]
     pub exec_async: Option<bool>,
-}
-
-#[derive(Debug, Deserialize, Clone)]
-#[serde(untagged)]
-pub enum Command {
-    Command(String),
-    CommandDetails(CommandDetails),
 }
 
 impl Config {
@@ -65,20 +68,15 @@ impl Target {
     pub fn path(&self) -> &str {
         match self {
             Self::Path(pth) => pth,
-            Self::PathDetails {
-                path,
-                transitions: _,
-            } => path,
+            Self::PathDetails(d) => &d.path,
         }
     }
 
     pub fn matches_transition(&self, t: Transition) -> bool {
         match self {
             Self::Path(_) => true,
-            Self::PathDetails {
-                path: _,
-                transitions,
-            } => transitions
+            Self::PathDetails(d) => d
+                .transitions
                 .iter()
                 .map(|ts| ts.to_lowercase())
                 .any(|ts| ts == transtion_to_string(&t)),
@@ -109,7 +107,7 @@ impl Command {
     }
 
     pub fn is_async(&self) -> bool {
-        matches!(self, Command::CommandDetails(d) 
+        matches!(self, Command::CommandDetails(d)
             if matches!(d.exec_async, Some(a) if a))
     }
 }
