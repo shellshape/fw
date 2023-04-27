@@ -2,7 +2,9 @@
 
 A very simple tool to watch files and execute commands on transitions.
 
-Currently, there are no pre-compiled binaries, but you can install the tool using cargo.
+You can download the pre-built binaries from the [Releases page](https://github.com/zekroTJA/fw/releases).
+
+If there is no binary for your system configuration available, you can also use cargo to install the application.
 ```
 cargo install --git https://github.com/zekrotja/fw fw
 ```
@@ -18,6 +20,8 @@ Configuration can be provided as `TOML`, `YML` or `JSON` file either in the curr
 - macOS: `$HOME/Library/Application Support/de.zekro.fw/config.*`
 - Windows: `%APPDATA%/zekro/fw/config.*`
 
+You can also pass a configuration via the `--config` parameter.
+
 Following, you can see an example configuration in `YML` format.
 ```yml
 # The interval in which files will be checked
@@ -31,11 +35,13 @@ check_interval_ms: 1000
 # it matches.
 # required
 actions:
+  # ID of the action
+  myaction:
     # List of files to be watched and
     # transitions which will trigger the
     # command execution.
     # required
-  - targets:
+    targets:
       - "some/path/file"
         # The file path of the watched file.
         # required
