@@ -5,7 +5,7 @@ use anyhow::Result;
 use directories::ProjectDirs;
 use figment::{
     providers::{Format, Json, Toml, Yaml},
-    Figment, Provider,
+    Figment,
 };
 use fwatch::Transition;
 use serde::Deserialize;
