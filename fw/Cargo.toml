@@ -1,12 +1,15 @@
 [package]
 name = "fw"
-version = "0.1.0"
+version = "1.0.0"
 edition = "2021"
+authors = ["Ringo Hoffmann <contact@zekro.de>"]
+description = "A very simple tool to watch files and execute commands on transitions."
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 anyhow = "1.0.70"
+clap = { version = "4.2.4", features = ["derive"] }
 directories = "5.0.0"
 env_logger = "0.10.0"
 figment = { version = "0.10.8", features = ["yaml", "toml", "json"] }

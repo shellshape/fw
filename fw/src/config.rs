@@ -1,9 +1,11 @@
+use std::{collections::HashMap, ops::Deref, path::Path};
+
 use crate::util::{split_cmd_trimmed, transtion_to_string};
 use anyhow::Result;
 use directories::ProjectDirs;
 use figment::{
     providers::{Format, Json, Toml, Yaml},
-    Figment,
+    Figment, Provider,
 };
 use fwatch::Transition;
 use serde::Deserialize;
@@ -11,7 +13,7 @@ use serde::Deserialize;
 #[derive(Debug, Deserialize)]
 pub struct Config {
     pub check_interval_ms: Option<u64>,
-    pub actions: Vec<Action>,
+    pub actions: HashMap<String, Action>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -61,6 +63,20 @@ impl Config {
             .merge(Json::file(dirs.config_dir().join("config.json")))
             .merge(Json::file("fw.json"))
             .extract()?)
+    }
+
+    pub fn from_file<T: AsRef<Path>>(path: T) -> Result<Self> {
+        let ext = path.as_ref().extension().unwrap_or_default();
+        let mut figment = Figment::new();
+
+        figment = match ext.to_string_lossy().deref() {
+            "yml" | "yaml" => figment.merge(Yaml::file(path)),
+            "toml" => figment.merge(Toml::file(path)),
+            "json" => figment.merge(Json::file(path)),
+            _ => anyhow::bail!("invalid config file type"),
+        };
+
+        Ok(figment.extract()?)
     }
 }
 
