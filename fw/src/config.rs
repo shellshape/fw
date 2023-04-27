@@ -1,4 +1,4 @@
-use crate::util::split_cmd_trimmed;
+use crate::util::{split_cmd_trimmed, transtion_to_string};
 use anyhow::Result;
 use directories::ProjectDirs;
 use figment::{
@@ -109,14 +109,5 @@ impl Command {
     pub fn is_async(&self) -> bool {
         matches!(self, Command::CommandDetails(d)
             if matches!(d.exec_async, Some(a) if a))
-    }
-}
-
-fn transtion_to_string(t: &Transition) -> &'static str {
-    match t {
-        Transition::None => "none",
-        Transition::Created => "created",
-        Transition::Deleted => "deleted",
-        Transition::Modified => "modified",
     }
 }

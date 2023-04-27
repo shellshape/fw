@@ -1,3 +1,5 @@
+use fwatch::Transition;
+
 pub fn split_cmd(str: &str) -> Vec<&str> {
     if str.is_empty() {
         return vec![];
@@ -36,6 +38,15 @@ pub fn split_cmd_trimmed(str: &str) -> Vec<&str> {
         .iter()
         .map(|v| v.trim_matches(|c| c == '"' || c == '\''))
         .collect()
+}
+
+pub fn transtion_to_string(t: &Transition) -> &'static str {
+    match t {
+        Transition::None => "none",
+        Transition::Created => "created",
+        Transition::Deleted => "deleted",
+        Transition::Modified => "modified",
+    }
 }
 
 #[cfg(test)]

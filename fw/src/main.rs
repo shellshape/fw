@@ -2,9 +2,11 @@ mod config;
 mod util;
 
 use crate::config::{Command, Config};
+use crate::util::transtion_to_string;
 use env_logger::Env;
 use fwatch::{BasicTarget, Transition, Watcher};
 use log::{debug, error, info};
+use std::ffi::OsStr;
 use std::str;
 use std::{process::Stdio, time::Duration};
 use tokio::{process, time};
@@ -50,18 +52,22 @@ async fn main() {
                     if target.path() != path.to_string_lossy()
                         || !target.matches_transition(transition)
                     {
-                        debug!(
-                            "Change not tracked: {:?} -> {:?}",
-                            target.path(),
-                            &transition
-                        );
+                        debug!("Change not tracked: {:?} -> {:?}", &path, &transition);
                         continue;
                     }
 
                     info!("Change detected: {:?} -> {:?}", &path, &transition);
+
                     let cmds = action.commands.clone();
+                    let envmap = [
+                        ("FW_PATH", format!("{}", path.clone().to_string_lossy())),
+                        (
+                            "FW_TRANSITION",
+                            transtion_to_string(&transition).to_string(),
+                        ),
+                    ];
                     tokio::spawn(async move {
-                        execute_commands(&cmds).await;
+                        execute_commands(&cmds, envmap).await;
                     });
                 }
             }
@@ -71,7 +77,12 @@ async fn main() {
     }
 }
 
-async fn execute_commands(cmds: &[Command]) {
+async fn execute_commands<E, K, V>(cmds: &[Command], env: E)
+where
+    E: IntoIterator<Item = (K, V)> + Clone,
+    K: AsRef<OsStr>,
+    V: AsRef<OsStr>,
+{
     for cmd in cmds {
         let args = cmd.split_command();
         if args.is_empty() {
@@ -82,7 +93,7 @@ async fn execute_commands(cmds: &[Command]) {
         let args = &args[1..];
 
         let mut exec = process::Command::new(ex);
-        exec.args(args).current_dir(cmd.cwd());
+        exec.args(args).current_dir(cmd.cwd()).envs(env.clone());
 
         if cmd.is_async() {
             match exec.spawn() {
