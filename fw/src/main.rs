@@ -11,7 +11,11 @@ use watcher::watch;
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
 struct Cmd {
+    /// Select actions to be watched. If none are specified,
+    /// all actions are watched.
     pub actions: Option<Vec<String>>,
+
+    /// Custom config location.
     #[arg(short, long)]
     pub config: Option<String>,
 }
