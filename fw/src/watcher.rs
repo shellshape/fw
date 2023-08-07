@@ -28,6 +28,18 @@ pub async fn watch(cfg: &Config, filter: Option<Vec<String>>) {
         .flat_map(|(_, action)| &action.targets)
         .for_each(|target| watcher.add_target(BasicTarget::new(target.path())));
 
+    let startup_actions = actions.iter().filter(|a| {
+        a.1.run_commands_on_startup.is_some_and(|v| v) || matches!(a.1.startup_commands, Some(_))
+    });
+    for (name, action) in startup_actions {
+        info!("Executing startup commands for {} ...", name);
+        if let Some(cmds) = action.startup_commands.as_ref() {
+            execute_commands::<Vec<(&str, &str)>, &str, &str>(cmds, None).await;
+        } else {
+            execute_commands::<Vec<(&str, &str)>, &str, &str>(&action.commands, None).await;
+        }
+    }
+
     info!("Watching targets ...");
     loop {
         for (index, transition) in watcher
@@ -61,7 +73,7 @@ pub async fn watch(cfg: &Config, filter: Option<Vec<String>>) {
                         ),
                     ];
                     tokio::spawn(async move {
-                        execute_commands(&cmds, envmap).await;
+                        execute_commands(&cmds, Some(envmap)).await;
                     });
                 }
             }
@@ -71,7 +83,7 @@ pub async fn watch(cfg: &Config, filter: Option<Vec<String>>) {
     }
 }
 
-async fn execute_commands<E, K, V>(cmds: &[Command], env: E)
+async fn execute_commands<E, K, V>(cmds: &[Command], env: Option<E>)
 where
     E: IntoIterator<Item = (K, V)> + Clone,
     K: AsRef<OsStr>,
@@ -87,7 +99,10 @@ where
         let args = &args[1..];
 
         let mut exec = process::Command::new(ex);
-        exec.args(args).current_dir(cmd.cwd()).envs(env.clone());
+        exec.args(args).current_dir(cmd.cwd());
+        if let Some(env) = env.as_ref() {
+            exec.envs(env.clone());
+        }
 
         if cmd.is_async() {
             match exec.spawn() {

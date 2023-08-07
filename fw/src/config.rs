@@ -18,6 +18,8 @@ pub struct Config {
 
 #[derive(Debug, Deserialize)]
 pub struct Action {
+    pub run_commands_on_startup: Option<bool>,
+    pub startup_commands: Option<Vec<Command>>,
     pub targets: Vec<Target>,
     pub commands: Vec<Command>,
 }

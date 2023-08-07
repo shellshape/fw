@@ -6,7 +6,6 @@ use crate::config::Config;
 use clap::Parser;
 use env_logger::Env;
 use log::{debug, error};
-use watcher::watch;
 
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
@@ -41,5 +40,5 @@ async fn main() {
 
     debug!("Parsed config: {cfg:#?}");
 
-    watch(&cfg, cmd.actions).await;
+    watcher::watch(&cfg, cmd.actions).await;
 }

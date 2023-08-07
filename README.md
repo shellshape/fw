@@ -37,6 +37,14 @@ check_interval_ms: 1000
 actions:
   # ID of the action
   myaction:
+    # Define commands that shall run on the tool
+    # startup for this action. This overwrites
+    # run_commands_on_startup to true.
+    startup_commands:
+      - "killall -s TERM myapp"
+    # Set this to true to run the defined action
+    # commands on startup of the tool.
+    run_commands_on_startup: true
     # List of files to be watched and
     # transitions which will trigger the
     # command execution.
