@@ -29,7 +29,7 @@ pub async fn watch(cfg: &Config, filter: Option<Vec<String>>) {
         .for_each(|target| watcher.add_target(BasicTarget::new(target.path())));
 
     let startup_actions = actions.iter().filter(|a| {
-        a.1.run_commands_on_startup.is_some_and(|v| v) || matches!(a.1.startup_commands, Some(_))
+        a.1.run_commands_on_startup.is_some_and(|v| v) || a.1.startup_commands.is_some()
     });
     for (name, action) in startup_actions {
         info!("Executing startup commands for {} ...", name);

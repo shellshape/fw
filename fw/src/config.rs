@@ -1,13 +1,12 @@
 use std::{collections::HashMap, ops::Deref, path::Path};
 
-use crate::util::{split_cmd_trimmed, transtion_to_string};
+use crate::util::split_cmd_trimmed;
 use anyhow::Result;
 use directories::ProjectDirs;
 use figment::{
     providers::{Format, Json, Toml, Yaml},
     Figment,
 };
-use fwatch::Transition;
 use serde::Deserialize;
 
 #[derive(Debug, Deserialize)]
@@ -39,9 +38,33 @@ pub enum Command {
 }
 
 #[derive(Debug, Deserialize, Clone)]
+pub enum Transition {
+    #[serde(rename = "none")]
+    None,
+    #[serde(rename = "created")]
+    Created,
+    #[serde(rename = "modified")]
+    Modified,
+    #[serde(rename = "deleted")]
+    Deleted,
+}
+
+impl PartialEq<fwatch::Transition> for Transition {
+    fn eq(&self, other: &fwatch::Transition) -> bool {
+        match self {
+            Transition::None if other == &fwatch::Transition::None => true,
+            Transition::Created if other == &fwatch::Transition::Created => true,
+            Transition::Modified if other == &fwatch::Transition::Modified => true,
+            Transition::Deleted if other == &fwatch::Transition::Deleted => true,
+            _ => false,
+        }
+    }
+}
+
+#[derive(Debug, Deserialize, Clone)]
 pub struct PathDetails {
     pub path: String,
-    pub transitions: Vec<String>,
+    pub transitions: Vec<Transition>,
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -90,14 +113,10 @@ impl Target {
         }
     }
 
-    pub fn matches_transition(&self, t: Transition) -> bool {
+    pub fn matches_transition(&self, t: fwatch::Transition) -> bool {
         match self {
             Self::Path(_) => true,
-            Self::PathDetails(d) => d
-                .transitions
-                .iter()
-                .map(|ts| ts.to_lowercase())
-                .any(|ts| ts == transtion_to_string(&t)),
+            Self::PathDetails(d) => d.transitions.iter().any(|ts| ts == &t),
         }
     }
 }
